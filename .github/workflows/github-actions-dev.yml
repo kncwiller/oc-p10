@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
-          version: '11'
+          java-version: '11'
           cache: 'maven'
       - name: list tools version
         run: |
