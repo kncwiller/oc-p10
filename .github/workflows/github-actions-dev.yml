@@ -1,11 +1,32 @@
-name: GitHub Actions BopApp Dev
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: CICD BopApp on dev env
+run-name: running by ${{ github.actor }}
+on:
+  push:
+    branches:
+      - feature/**
+      - bugfix/**
 jobs:
-  Explore-GitHub-Actions:
+  Build-And-Deploy-BobApp-Back:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          version: '11'
+          cache: 'maven'
+      - name: list tools version
+        run: |
+          mvn -v
+          java -version
+      - name: build app
+        run: |
+          cd back
+          ls -la
+          mvn -B -f pom.xml clean package -DskipTests
+          ls target
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out repository code
