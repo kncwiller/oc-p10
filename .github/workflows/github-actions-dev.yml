@@ -1,10 +1,11 @@
-name: CICD BopApp on dev env
+name: CICD BopApp
 run-name: running by ${{ github.actor }}
 on:
   push:
     branches:
-      - feature/**
-      - bugfix/**
+#      - feature/**
+#      - bugfix/**
+      - main
   pull_request:
     branches:
       - main
@@ -56,6 +57,49 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./back
+          dockerfile: Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bopapp-api:latest
+  Build-And-Deploy-BobApp-Front:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
+      - name: list tools version
+        run: |
+          node -v
+          npm -v
+      - name: install dependencies
+        run: |
+          cd front
+          npm install
+      - name: run tests
+        run: |
+          cd front
+          npm run test
+      - name: code quality
+        run: |
+          cd front
+          npm run sonar
+      - name: login to docker hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: push the docker image to docker hub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./front
           dockerfile: Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bopapp:latest

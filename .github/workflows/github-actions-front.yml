@@ -1,0 +1,51 @@
+name: CICD BopApp
+run-name: running by ${{ github.actor }}
+on:
+  push:
+    branches:
+#      - feature/**
+      - bugfix/**
+#      - main
+#  pull_request:
+#    branches:
+#      - main
+jobs:
+  Build-And-Deploy-BobApp-Front:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: front/package-lock.json
+      - name: setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
+      - name: list tools version
+        run: |
+          node -v
+          npm -v
+      - name: install dependencies
+        run: |
+          cd front
+          npm install
+      - name: run tests
+        run: |
+          cd front
+          npm run test
+      - name: test reporting
+        uses: phoenix-actions/test-reporting@v8
+        with:
+          name: jasmine test reporting
+          path: front/test-results/*.xml
+          reporter: jest-junit
+      - name: code quality
+        run: |
+          cd front
+          npm run sonar
